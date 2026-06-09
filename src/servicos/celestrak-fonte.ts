@@ -22,6 +22,23 @@ export const GRUPOS_PERMITIDOS = new Set<string>([
 
 const BASE_CELESTRAK = 'https://celestrak.org/NORAD/elements/gp.php';
 
+// O CelesTrak pede um User-Agent identificável; requisições genéricas de
+// datacenter (ex.: a Edge Function da Vercel) são ocasionalmente bloqueadas
+// ou derrubadas com 502 transitório. Identificar a origem reduz esses blips.
+const CABECALHOS_FETCH: Record<string, string> = {
+  Accept: 'text/plain',
+  'User-Agent':
+    'SENTINELA/1.0 (+https://global-solutions-sentinela.vercel.app; projeto academico FIAP)',
+};
+
+// Falhas transitórias que valem uma re-tentativa (rede instável, rate-limit,
+// gateways intermediários). 403/400/404 NÃO entram aqui — re-tentar não ajuda.
+const STATUS_RETENTAVEIS = new Set([429, 500, 502, 503, 504]);
+const MAX_TENTATIVAS = 3;
+
+const esperar = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
 // Cache em memória da fonte. O CelesTrak responde 403 ("GP data has not updated
 // since your last successful download") se o mesmo grupo for rebaixado dentro do
 // ciclo de ~2h. Por isso guardamos a última cópia boa e a reaproveitamos.
@@ -95,12 +112,35 @@ export async function buscarTLEsDoCelesTrak(grupo: string): Promise<DadosTLE[]> 
 
   const url = `${BASE_CELESTRAK}?GROUP=${encodeURIComponent(grupo)}&FORMAT=tle`;
 
-  let resposta: Response;
-  try {
-    resposta = await fetch(url, { headers: { Accept: 'text/plain' } });
-  } catch (erroRede) {
-    if (emCache) return emCache.objetos; // rede caiu: serve cópia anterior
-    throw erroRede;
+  // Tenta algumas vezes com backoff: um 502/timeout transitório do CelesTrak
+  // não deve derrubar a página inteira numa instância de borda sem cache ainda.
+  let resposta: Response | null = null;
+  let ultimoErroRede: unknown = null;
+
+  for (let tentativa = 1; tentativa <= MAX_TENTATIVAS; tentativa++) {
+    try {
+      resposta = await fetch(url, { headers: CABECALHOS_FETCH });
+    } catch (erroRede) {
+      ultimoErroRede = erroRede;
+      resposta = null;
+    }
+
+    // Sucesso ou erro definitivo (não-retentável): encerra o laço.
+    if (resposta && (resposta.ok || !STATUS_RETENTAVEIS.has(resposta.status))) {
+      break;
+    }
+    // Falha transitória: espera (300ms, 600ms…) e tenta de novo.
+    if (tentativa < MAX_TENTATIVAS) {
+      await esperar(300 * tentativa);
+    }
+  }
+
+  // Esgotou as tentativas sem resposta (rede caiu): serve cópia anterior ou propaga.
+  if (!resposta) {
+    if (emCache) return emCache.objetos;
+    throw (
+      ultimoErroRede ?? new Error(`Falha de rede ao buscar o grupo "${grupo}"`)
+    );
   }
 
   if (!resposta.ok) {
