@@ -1,0 +1,170 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Chakra+Petch:wght@500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   Utilitários de marca e atmosfera — console de vigilância
+   ============================================================ */
+
+/* Wordmark SENTINELA: gradiente metálico-gelo com varredura animada */
+.marca-sentinela {
+  background-image: linear-gradient(
+    100deg,
+    #4fc3f7 0%,
+    #e8f6ff 28%,
+    #81d4fa 46%,
+    #4fc3f7 64%,
+    #cfeeff 100%
+  );
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: varredura-marca 6s linear infinite;
+}
+
+@keyframes varredura-marca {
+  to {
+    background-position: 220% center;
+  }
+}
+
+/* Cantoneiras de HUD — molduras de "alvo" em volta de painéis */
+.cantoneiras::before,
+.cantoneiras::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: var(--cor-primaria);
+  border-style: solid;
+  opacity: 0.7;
+  pointer-events: none;
+}
+.cantoneiras::before {
+  top: -1px;
+  left: -1px;
+  border-width: 1px 0 0 1px;
+}
+.cantoneiras::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 1px 1px 0;
+}
+
+/* Ponto de status pulsante (sistema online) */
+@keyframes pulso-status {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(79, 195, 247, 0.5);
+  }
+  50% {
+    opacity: 0.55;
+    box-shadow: 0 0 0 5px rgba(79, 195, 247, 0);
+  }
+}
+.pulso-status {
+  animation: pulso-status 2s ease-in-out infinite;
+}
+
+/* ============================================================
+   Variáveis CSS globais — tema "Crise Fria" do SENTINELA
+   ============================================================ */
+:root {
+  /* Fundos */
+  --cor-fundo-principal: #050810;
+  --cor-fundo-secundario: #0a0f1e;
+  --cor-fundo-elevado: #111827;
+
+  /* Destaque principal */
+  --cor-primaria: #4fc3f7;
+  --cor-primaria-hover: #81d4fa;
+  --cor-primaria-dim: #1a4a6b;
+
+  /* Alerta / perigo */
+  --cor-alerta: #ff5722;
+  --cor-alerta-hover: #ff7043;
+  --cor-alerta-dim: #5c1a00;
+
+  /* Texto */
+  --cor-texto-principal: #e0e0e0;
+  --cor-texto-secundario: #8899aa;
+  --cor-texto-destaque: #ffffff;
+
+  /* Acento estrutural */
+  --cor-acento: #1a237e;
+  --cor-borda: #1e2d4a;
+
+  color-scheme: dark;
+}
+
+/* ============================================================
+   Reset básico
+   ============================================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background-color: var(--cor-fundo-principal);
+  color: var(--cor-texto-principal);
+  font-family: 'Space Grotesk', sans-serif;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: 'Space Grotesk', sans-serif;
+  color: var(--cor-texto-destaque);
+  line-height: 1.2;
+}
+
+code,
+.mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+a {
+  color: var(--cor-primaria);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--cor-primaria-hover);
+}
+
+/* Scrollbar discreta no tema escuro */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--cor-fundo-secundario);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--cor-primaria-dim);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cor-primaria);
+}
