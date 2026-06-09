@@ -1,0 +1,2 @@
+Aplicacao ao vivo (deploy Vercel):
+https://global-solutions-sentinela.vercel.app

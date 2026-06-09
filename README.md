@@ -5,6 +5,7 @@
 
 Entrega da **Global Solutions 2026/1 · Space Connect** da FIAP.
 
+**Aplicação ao vivo:** https://global-solutions-sentinela.vercel.app
 **Vídeo de apresentação:** https://www.youtube.com/watch?v=sk_RaUaNSH4
 
 ---
@@ -114,7 +115,7 @@ src/
 ├── tipos/            # Tipos TypeScript do domínio orbital
 └── utils/            # Mecânica orbital (TLE → posição 3D), formatação
 
-api/                  # Vercel Edge Functions (proxy CelesTrak + Space-Track)
+api/                  # Vercel Edge Function (proxy CelesTrak + cache de borda)
 ```
 
 ## Performance
